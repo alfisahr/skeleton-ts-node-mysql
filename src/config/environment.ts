@@ -8,11 +8,11 @@ interface EnvironmentType {
 }
 
 interface DBConfig {
-  host: string | undefined;
-  username: string | undefined;
-  password: string | undefined;
-  port: number | undefined;
-  name: string | undefined;
+  host: string;
+  username: string;
+  password: string;
+  port: number;
+  name: string;
 }
 
 dotenv.config();

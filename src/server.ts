@@ -1,14 +1,16 @@
-import App from "./App";
-import environment from "./config/environment";
-import Database from "./database";
+import App from './App';
+import { AppDataSource } from './database';
+import 'reflect-metadata';
 
-(async () => {
-  try {
-    const db = new Database(environment.database("development"));
-    await db.connect();
-
-    App.listen();
-  } catch (err) {
-    console.log(err);
-  }
+(() => {
+   try {
+      AppDataSource.initialize().then(() => {
+         App.listen();
+         console.log(`Server and DB successfully running!`);
+      }).catch((err) => {
+         console.error('Error during Data Source initialization', err);
+      });
+   } catch (err) {
+      console.log(err);
+   }
 })();
