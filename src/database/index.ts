@@ -1,6 +1,8 @@
 import environment from '../config/environment';
 import { DataSource } from 'typeorm';
 import { Post } from '../entity/Post';
+import { User } from '../entity/User';
+import { Category } from '../entity/Category';
 
 const { username, password, host, port, name: database } = environment.database('development');
 export const AppDataSource = new DataSource({
@@ -9,7 +11,7 @@ export const AppDataSource = new DataSource({
    port,
    username,
    password,
-   entities: [Post],
+   entities: [Post, User, Category],
    database,
    synchronize: true,
 });
