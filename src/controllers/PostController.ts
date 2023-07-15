@@ -5,20 +5,27 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { UpdateResult } from 'typeorm';
 
 class PostController {
-   constructor(private postRepository = AppDataSource.getRepository(Post)) {
-   }
 
-   public async getAll(): Promise<Post[]> {
+   public async getAll(req: Request, res: Response): Promise<Response> {
       let posts: Post[];
 
       try {
-         posts = await this.postRepository.find({
+         posts = await AppDataSource.getRepository(Post).find({
             order: {
-               title: 'ASC',
+               id: 'ASC',
             },
          });
+         posts = instanceToPlain(posts) as Post[];
+
+         return res.status(200).json({
+            success: true,
+            data: posts,
+         });
       } catch (err) {
-         console.log(err);
+         return res.status(500).json({
+            success: false,
+            message: err.message,
+         });
       }
    }
 
@@ -83,6 +90,35 @@ class PostController {
          return res.status(500).json({
             error: 'Internal Server Error',
          });
+      }
+   }
+
+   public async remove(req: Request, res: Response) {
+      let post: Post | null;
+
+      try {
+         post = await AppDataSource.getRepository(Post).findOne({
+            where: {
+               id: req.body.id,
+            },
+         });
+      } catch (err) {
+         return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      if (!post) {
+         return res.status(400).json({
+            error: `The post with the given ID doesn't exist`,
+         });
+      }
+
+      let removedPost: Post;
+
+      try {
+         await AppDataSource.manager.remove(post);
+         return res.status(200).json({ success: true, message: `Post ${req.body.id} successfully removed.` });
+      } catch (err) {
+         return res.status(500).json({ error: 'Internal Server Error' });
       }
    }
 }

@@ -9,15 +9,19 @@ router.get('/', (req: Request, res: Response) => {
    res.send(`<h1>Wahai Universe</h1>`);
 });
 
-router.get('/posts', (req: Request, res: Response) => {
-   postController.getAll();
-});
-
+router.get('/posts', postController.getAll);
 router.post('/posts', postController.create);
 router.put('/posts', postController.update);
+router.delete('/posts', postController.remove);
 
 router.post('/user', userController.create);
+router.put('/user', userController.update);
+router.delete('/user', userController.remove);
+router.get('/user', userController.getAll);
 
 router.post('/category', categoryController.create);
+router.put('/category', categoryController.update);
+router.delete('/category', categoryController.remove);
+router.get('/category', categoryController.getAll);
 
 export default router;

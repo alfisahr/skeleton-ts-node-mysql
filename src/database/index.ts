@@ -12,6 +12,7 @@ export const AppDataSource = new DataSource({
    username,
    password,
    entities: [Post, User, Category],
+   entitySkipConstructor: false,
    database,
    synchronize: true,
 });
