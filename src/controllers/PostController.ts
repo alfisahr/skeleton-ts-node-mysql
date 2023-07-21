@@ -3,12 +3,13 @@ import { AppDataSource } from '../database';
 import { Request, Response } from 'express';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { UpdateResult } from 'typeorm';
+import catchAsync from '../middleware/catchAsync';
 
 class PostController {
-   public async getAll(req: Request, res: Response): Promise<Response> {
-      let posts: Post[];
+   public getAll = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         let posts: Post[];
 
-      try {
          posts = await AppDataSource.getRepository(Post).find({
             order: {
                id: 'ASC',
@@ -20,26 +21,21 @@ class PostController {
             success: true,
             data: posts,
          });
-      } catch (err: any) {
-         return res.status(500).json({
-            success: false,
-            message: err.message,
-         });
       }
-   }
+   );
 
-   public async create(req: Request, res: Response): Promise<Response> {
-      const newPost = new Post();
-      newPost.categories = req.body.categories.map((id: string) => ({ id }));
-      newPost.title = req.body.title;
-      newPost.excerpt = req.body.excerpt;
-      newPost.content = req.body.content;
-      newPost.author = req.body.author;
-      newPost.isPublished = req.body.isPublished;
+   public create = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         const newPost = new Post();
+         newPost.categories = req.body.categories.map((id: string) => ({ id }));
+         newPost.title = req.body.title;
+         newPost.excerpt = req.body.excerpt;
+         newPost.content = req.body.content;
+         newPost.author = req.body.author;
+         newPost.isPublished = req.body.isPublished;
 
-      let post: Post;
+         let post: Post;
 
-      try {
          post = await AppDataSource.getRepository(Post).save(newPost);
 
          // Convert post instance to object
@@ -48,36 +44,31 @@ class PostController {
             success: true,
             data: post,
          });
-      } catch (err) {
-         console.log(err);
-         return res.status(400).json({
-            success: false,
-         });
       }
-   }
+   );
 
-   public async update(req: Request, res: Response): Promise<Response> {
-      let post: Post | null;
+   public update = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         let post: Post | null;
 
-      try {
-         post = await AppDataSource.getRepository(Post).findOne({
-            where: {
-               id: req.body.id,
-            },
-         });
-      } catch (err) {
-         return res.status(500).json({ error: 'Internal Server Error' });
-      }
+         try {
+            post = await AppDataSource.getRepository(Post).findOne({
+               where: {
+                  id: req.body.id,
+               },
+            });
+         } catch (err) {
+            return res.status(500).json({ error: 'Internal Server Error' });
+         }
 
-      if (!post) {
-         return res.status(400).json({
-            error: `The post with the given ID doesn't exist`,
-         });
-      }
+         if (!post) {
+            return res.status(400).json({
+               error: `The post with the given ID doesn't exist`,
+            });
+         }
 
-      let updatedPost: UpdateResult;
+         let updatedPost: UpdateResult;
 
-      try {
          updatedPost = await AppDataSource.getRepository(Post).update(
             req.body.id,
             plainToInstance(Post, {
@@ -88,14 +79,10 @@ class PostController {
          updatedPost = instanceToPlain(updatedPost) as UpdateResult;
 
          return res.status(200).json(updatedPost);
-      } catch (err) {
-         return res.status(500).json({
-            error: 'Internal Server Error',
-         });
       }
-   }
+   );
 
-   public async remove(req: Request, res: Response) {
+   public remove = catchAsync(async (req: Request, res: Response) => {
       let post: Post | null;
 
       try {
@@ -116,16 +103,12 @@ class PostController {
 
       let removedPost: Post;
 
-      try {
-         await AppDataSource.manager.remove(post);
-         return res.status(200).json({
-            success: true,
-            message: `Post ${req.body.id} successfully removed.`,
-         });
-      } catch (err) {
-         return res.status(500).json({ error: 'Internal Server Error' });
-      }
-   }
+      await AppDataSource.manager.remove(post);
+      return res.status(200).json({
+         success: true,
+         message: `Post ${req.body.id} successfully removed.`,
+      });
+   });
 }
 
 export const postController = new PostController();

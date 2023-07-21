@@ -6,10 +6,10 @@ import { Category } from '../entity/Category';
 import { UpdateResult } from 'typeorm';
 
 class CategoryController {
-   public getAll = async (req: Request, res: Response): Promise<Response> => {
-      let categories: Category[];
+   public getAll = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         let categories: Category[];
 
-      try {
          categories = await AppDataSource.getRepository(Category).find({
             order: {
                id: 'ASC',
@@ -21,13 +21,8 @@ class CategoryController {
             success: true,
             data: categories,
          });
-      } catch (err: any) {
-         return res.status(500).json({
-            success: false,
-            message: err.message,
-         });
       }
-   };
+   );
 
    public create = catchAsync(
       async (req: Request, res: Response): Promise<Response> => {
@@ -50,28 +45,28 @@ class CategoryController {
       }
    );
 
-   public async update(req: Request, res: Response): Promise<Response> {
-      let category: Category | null;
+   public update = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         let category: Category | null;
 
-      try {
-         category = await AppDataSource.getRepository(Category).findOne({
-            where: {
-               id: req.body.id,
-            },
-         });
-      } catch (err) {
-         return res.status(500).json({ error: 'Internal Server Error' });
-      }
+         try {
+            category = await AppDataSource.getRepository(Category).findOne({
+               where: {
+                  id: req.body.id,
+               },
+            });
+         } catch (err) {
+            return res.status(500).json({ error: 'Internal Server Error' });
+         }
 
-      if (!category) {
-         return res.status(400).json({
-            error: `The post with the given ID doesn't exist`,
-         });
-      }
+         if (!category) {
+            return res.status(400).json({
+               error: `The post with the given ID doesn't exist`,
+            });
+         }
 
-      let updatedCategory: UpdateResult;
+         let updatedCategory: UpdateResult;
 
-      try {
          updatedCategory = await AppDataSource.getRepository(Category).update(
             req.body.id,
             plainToInstance(Category, {
@@ -82,14 +77,10 @@ class CategoryController {
          updatedCategory = instanceToPlain(updatedCategory) as UpdateResult;
 
          return res.status(200).json(updatedCategory);
-      } catch (err) {
-         return res.status(500).json({
-            error: 'Internal Server Error',
-         });
       }
-   }
+   );
 
-   public async remove(req: Request, res: Response) {
+   public remove = catchAsync(async (req: Request, res: Response) => {
       let category: Category | null;
 
       try {
@@ -108,16 +99,12 @@ class CategoryController {
          });
       }
 
-      try {
-         await AppDataSource.manager.remove(category);
-         return res.status(200).json({
-            success: true,
-            message: `Category ${req.body.id} successfully removed.`,
-         });
-      } catch (err) {
-         return res.status(500).json({ error: 'Internal Server Error' });
-      }
-   }
+      await AppDataSource.manager.remove(category);
+      return res.status(200).json({
+         success: true,
+         message: `Category ${req.body.id} successfully removed.`,
+      });
+   });
 }
 
 export const categoryController = new CategoryController();
