@@ -1,12 +1,12 @@
 import { AppDataSource } from '../database';
 import { Request, Response } from 'express';
+import catchAsync from '../middleware/catchAsync';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Category } from '../entity/Category';
 import { UpdateResult } from 'typeorm';
 
 class CategoryController {
-
-   public async getAll(req: Request, res: Response): Promise<Response> {
+   public getAll = async (req: Request, res: Response): Promise<Response> => {
       let categories: Category[];
 
       try {
@@ -21,37 +21,34 @@ class CategoryController {
             success: true,
             data: categories,
          });
-      } catch (err) {
+      } catch (err: any) {
          return res.status(500).json({
             success: false,
             message: err.message,
          });
       }
-   }
+   };
 
-   public async create(req: Request, res: Response): Promise<Response> {
-      const newCategory = new Category();
-      newCategory.name = req.body.name;
-      newCategory.slug = req.body.slug;
-      newCategory.description = req.body.description;
+   public create = catchAsync(
+      async (req: Request, res: Response): Promise<Response> => {
+         const newCategory = new Category();
+         newCategory.name = req.body.name;
+         newCategory.slug = req.body.slug;
+         newCategory.description = req.body.description;
 
-      let category: Category;
+         let category: Category;
 
-      try {
-         category = await AppDataSource.getRepository(Category).save(newCategory);
+         category = await AppDataSource.getRepository(Category).save(
+            newCategory
+         );
          // Convert category instance to object
          category = instanceToPlain(category) as Category;
          return res.status(201).json({
             success: true,
             data: category,
          });
-      } catch (err) {
-         console.log(err);
-         return res.status(400).json({
-            success: false,
-         });
       }
-   }
+   );
 
    public async update(req: Request, res: Response): Promise<Response> {
       let category: Category | null;
@@ -75,10 +72,13 @@ class CategoryController {
       let updatedCategory: UpdateResult;
 
       try {
-         updatedCategory = await AppDataSource.getRepository(Category).update(req.body.id, plainToInstance(Category, {
-            title: req.body.title,
-            content: req.body.content,
-         }));
+         updatedCategory = await AppDataSource.getRepository(Category).update(
+            req.body.id,
+            plainToInstance(Category, {
+               title: req.body.title,
+               content: req.body.content,
+            })
+         );
          updatedCategory = instanceToPlain(updatedCategory) as UpdateResult;
 
          return res.status(200).json(updatedCategory);
@@ -110,7 +110,10 @@ class CategoryController {
 
       try {
          await AppDataSource.manager.remove(category);
-         return res.status(200).json({ success: true, message: `Category ${req.body.id} successfully removed.` });
+         return res.status(200).json({
+            success: true,
+            message: `Category ${req.body.id} successfully removed.`,
+         });
       } catch (err) {
          return res.status(500).json({ error: 'Internal Server Error' });
       }

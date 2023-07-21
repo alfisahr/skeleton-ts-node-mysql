@@ -5,7 +5,6 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { UpdateResult } from 'typeorm';
 
 class UserController {
-
    public async getAll(req: Request, res: Response): Promise<Response> {
       let users: User[];
 
@@ -21,7 +20,7 @@ class UserController {
             success: true,
             data: users,
          });
-      } catch (err) {
+      } catch (err: any) {
          return res.status(500).json({
             success: false,
             message: err.message,
@@ -77,10 +76,13 @@ class UserController {
       let updatedUser: UpdateResult;
 
       try {
-         updatedUser = await AppDataSource.getRepository(User).update(req.body.id, plainToInstance(User, {
-            title: req.body.title,
-            content: req.body.content,
-         }));
+         updatedUser = await AppDataSource.getRepository(User).update(
+            req.body.id,
+            plainToInstance(User, {
+               title: req.body.title,
+               content: req.body.content,
+            })
+         );
          updatedUser = instanceToPlain(updatedUser) as UpdateResult;
 
          return res.status(200).json(updatedUser);
@@ -112,7 +114,12 @@ class UserController {
 
       try {
          await AppDataSource.manager.remove(user);
-         return res.status(200).json({ success: true, message: `User ${req.body.id} successfully removed.` });
+         return res
+            .status(200)
+            .json({
+               success: true,
+               message: `User ${req.body.id} successfully removed.`,
+            });
       } catch (err) {
          return res.status(500).json({ error: 'Internal Server Error' });
       }

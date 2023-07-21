@@ -5,7 +5,6 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { UpdateResult } from 'typeorm';
 
 class PostController {
-
    public async getAll(req: Request, res: Response): Promise<Response> {
       let posts: Post[];
 
@@ -21,7 +20,7 @@ class PostController {
             success: true,
             data: posts,
          });
-      } catch (err) {
+      } catch (err: any) {
          return res.status(500).json({
             success: false,
             message: err.message,
@@ -31,7 +30,7 @@ class PostController {
 
    public async create(req: Request, res: Response): Promise<Response> {
       const newPost = new Post();
-      newPost.categories = req.body.categories.map((id) => ({ id }));
+      newPost.categories = req.body.categories.map((id: string) => ({ id }));
       newPost.title = req.body.title;
       newPost.excerpt = req.body.excerpt;
       newPost.content = req.body.content;
@@ -79,10 +78,13 @@ class PostController {
       let updatedPost: UpdateResult;
 
       try {
-         updatedPost = await AppDataSource.getRepository(Post).update(req.body.id, plainToInstance(Post, {
-            title: req.body.title,
-            content: req.body.content,
-         }));
+         updatedPost = await AppDataSource.getRepository(Post).update(
+            req.body.id,
+            plainToInstance(Post, {
+               title: req.body.title,
+               content: req.body.content,
+            })
+         );
          updatedPost = instanceToPlain(updatedPost) as UpdateResult;
 
          return res.status(200).json(updatedPost);
@@ -116,7 +118,10 @@ class PostController {
 
       try {
          await AppDataSource.manager.remove(post);
-         return res.status(200).json({ success: true, message: `Post ${req.body.id} successfully removed.` });
+         return res.status(200).json({
+            success: true,
+            message: `Post ${req.body.id} successfully removed.`,
+         });
       } catch (err) {
          return res.status(500).json({ error: 'Internal Server Error' });
       }

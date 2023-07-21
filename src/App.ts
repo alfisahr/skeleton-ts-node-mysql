@@ -2,6 +2,7 @@ import { createServer, Server } from 'http';
 import express from 'express';
 import cors from 'cors';
 import router from './config/routes';
+import globalErrorHandler from './controllers/ErrorController';
 
 interface AppClass {
    server: Server;
@@ -16,6 +17,7 @@ class App {
       this.server = createServer(this.app);
       this.middleware();
       this.setRoutes();
+      this.errorHandler();
    }
 
    setRoutes() {
@@ -26,6 +28,10 @@ class App {
       this.app.use(express.json());
       this.app.use(express.urlencoded({ extended: true }));
       this.app.use(cors());
+   }
+
+   errorHandler() {
+      this.app.use(globalErrorHandler);
    }
 
    listen() {

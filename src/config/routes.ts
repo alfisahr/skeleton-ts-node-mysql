@@ -19,9 +19,10 @@ router.put('/user', userController.update);
 router.delete('/user', userController.remove);
 router.get('/user', userController.getAll);
 
-router.post('/category', categoryController.create);
-router.put('/category', categoryController.update);
-router.delete('/category', categoryController.remove);
-router.get('/category', categoryController.getAll);
+router
+   .post('/category', categoryController.create)
+   .put('/category', categoryController.update)
+   .delete('/category', categoryController.remove)
+   .get('/category', categoryController.getAll);
 
 export default router;
