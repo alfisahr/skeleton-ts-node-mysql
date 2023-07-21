@@ -1,8 +1,17 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+   BeforeInsert,
+   BeforeUpdate,
+   Column,
+   Entity,
+   OneToMany,
+   PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Post } from './Post';
+import { hash } from 'bcryptjs';
 
 enum Gender {
-   male = 'Male', female = 'Female'
+   male = 'Male',
+   female = 'Female',
 }
 
 @Entity()
@@ -34,4 +43,9 @@ export class User {
 
    @OneToMany(() => Post, (post) => post.author)
    posts: Post[];
+
+   @BeforeInsert()
+   async hashPassword() {
+      this.password = await hash(this.password, 12);
+   }
 }
